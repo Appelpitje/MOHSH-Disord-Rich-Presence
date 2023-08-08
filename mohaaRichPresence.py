@@ -8,10 +8,13 @@ def readMOHAA():
     try:
         print("Looking for MOHAA.")
         # Find the MOH console window
-        hwnd = win32gui.FindWindow("MOHTA WinConsole", None)
-        win32gui.ShowWindow(hwnd, win32con.SW_SHOW)
-        clearBtn = win32gui.FindWindowEx(hwnd, None, "Button", "clear")
-        # Click the clear button
+        try:
+            hwnd = win32gui.FindWindow("MOHTA WinConsole", None)
+            win32gui.ShowWindow(hwnd, win32con.SW_SHOW)
+            clearBtn = win32gui.FindWindowEx(hwnd, None, "Button", "clear")
+            win32gui.SendMessage(hwnd, win32con.WM_COMMAND, 1, clearBtn)
+        except Exception as e:
+            print("Error[win32gui]: " + str(e))
         win32gui.SendMessage(hwnd, win32con.WM_COMMAND, 1, clearBtn)
 
         #Set cmdline with serverinfo
@@ -47,12 +50,15 @@ def getServerDetails(server):
         cmd = "getstatus"
         serverinfo = []
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.settimeout(5)
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.settimeout(5)
 
-        sock.connect((IP, port))
-        sock.send(b"\xFF\xFF\xFF\xFF\x02" + str.encode(cmd))
-        received = sock.recv(65565)
+            sock.connect((IP, port))
+            sock.send(b"\xFF\xFF\xFF\xFF\x02" + str.encode(cmd))
+            received = sock.recv(65565)
+        except Exception as e:
+            print("Error[socket]: " + str(e))
         r = received.decode("ISO-8859-1").split("\\")
         servernameindex = r.index("sv_hostname")
         mapindex = r.index("mapname")
@@ -85,7 +91,7 @@ def discordRP():
             RPC.update(state=serverinfo[1], details=serverinfo[0], large_image="moh_icon", small_image=serverinfo[1][:3], ) # Set the presence
         except Exception as e:
             print("Error[Discord]: " + str(e))
-        time.sleep(15)
+        time.sleep(60)
 
 if __name__ == '__main__':
     discordRP()
